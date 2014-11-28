@@ -1,17 +1,27 @@
 #coding=utf-8
 import DataStream
-obj  =DataStream.new(4)
-s = "1234567890"
-sz = len(s);
-DataStream.write(obj,s,sz)
-DataStream.write(obj,s,sz)
-ret = DataStream.encrypt(obj,"abde12345")
+from ftplib import FTP
 
-ret = DataStream.decrypt(obj,"abde12345")
-ret = DataStream.compress(obj)
-ret = DataStream.uncompress(obj)
-print ret
-ret = DataStream.read(obj,1024)
-print "read",ret
-ret = DataStream.read(obj,1024)
-print "read2",ret
+class MyFtp():
+    def __init__(self,host,port = '21'):
+        self.BUF_SIZE = 1024
+        self.ftp  = FTP()
+        self.host = host
+        self.port =port
+    def login(self,username,password):
+        self.ftp.connect(self.host,self.port)
+        self.ftp.login(username,password)
+        self.ftp.cwd("data")
+    def down(self,filename):
+        fp = open(filename,"wb")
+        self.ftp.retrbinary("RETR %s"%filename,fp.write,self.BUF_SIZE)
+        fp.close()
+    def up(self,filename):
+        fp = open(filename,"rb")
+        self.ftp.storbinary("STOR %s"%filename,fp,self.BUF_SIZE)
+        fp.close()
+    def quit(self):
+        self.ftp.quit()
+        print 'ftp quit';
+if __name__ == "__main__":
+   
