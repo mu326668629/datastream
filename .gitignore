@@ -1,0 +1,15 @@
+*.bak
+*.dsp
+*.dsw
+*.ncb
+*.opt
+*.plg
+*.dat
+*.gz
+*.txt
+*.pyd
+*.exe
+*.lib
+*.obj
+*.exp
+
