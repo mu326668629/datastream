@@ -326,7 +326,7 @@ int DataStream_encrypt(DataStream *me,const char *password)
 	unsigned int crc = 0;
 	int crc_sz = sizeof(unsigned int);
 	unsigned int ps=0;
-	if(!me|| !me->head || !password || !password[0])return 0;
+	if(!me|| !me->head || !password || !password[0])return -1;
     temp = DataStream_new(me->cache_size);
     buf = (char*)malloc(BLOCK_SIZE);
 	if(buf == NULL || temp == NULL)goto ERROR;
@@ -398,27 +398,40 @@ PyObject *Extest_write(PyObject *self,PyObject*args)
 	int sz = 0;
 	int res ;
 	res = PyArg_ParseTuple(args,"isi",&me,&buf,&sz);
-	if(!res)return NULL;
+	if(!res)(PyObject*)Py_BuildValue("i",-2);
 	res = DataStream_write(me,buf,sz);
 	return (PyObject*)Py_BuildValue("i",res);	
 }
 PyObject *Extest_read(PyObject *self,PyObject*args)
 {
 	DataStream*me;
-	int res ;
+	int ret = -1;
 	char *buf = NULL;
-	int sz;
-    res = PyArg_ParseTuple(args,"isi",&me,&buf,&sz);
-	if(!res)return NULL;
-	res = DataStream_read(me,buf,sz);
-	return (PyObject*)Py_BuildValue("i",res);	
+	int sz = 0;
+	int len =0;
+	PyObject *out;
+  ret = PyArg_ParseTuple(args,"ii",&me,&sz);
+	if(!ret)goto END;
+	if(sz<=0)goto END;
+	len = DataStream_length(me);
+	if(sz > len) sz = len;
+	buf = (char*)calloc(1,sz+1);
+	if(buf == NULL)goto END;
+	ret = DataStream_read(me,buf,sz);
+END:
+	if(ret > 0)
+	  out =  (PyObject*)Py_BuildValue("s",buf);
+	else
+		out =  (PyObject*)Py_BuildValue("s","");
+	if(buf)free(buf);
+	return out;
 }
 PyObject *Extest_compress(PyObject *self,PyObject*args)
 {
 	DataStream*me;
 	int res ;
 	res = PyArg_ParseTuple(args,"i",&me);
-	if(!res)return NULL;
+	if(!res)return(PyObject*)Py_BuildValue("i",-1);
 	res = DataStream_compress(me);
 	return (PyObject*)Py_BuildValue("i",res);	
 }
@@ -427,7 +440,7 @@ PyObject *Extest_uncompress(PyObject *self,PyObject*args)
 	DataStream*me;
 	int res ;
 	res = PyArg_ParseTuple(args,"i",&me);
-	if(!res)return NULL;
+	if(!res)return (PyObject*)Py_BuildValue("i",-1);
 	res = DataStream_uncompress(me);
 	return (PyObject*)Py_BuildValue("i",res);	
 }
@@ -437,7 +450,7 @@ PyObject *Extest_encrypt(PyObject *self,PyObject*args)
 	int res ;
 	char *password = NULL;;
 	res = PyArg_ParseTuple(args,"is",&me,&password);
-	if(!res)return NULL;
+	if(!res)(PyObject*)Py_BuildValue("i",-1);		
 	res = DataStream_encrypt(me,password);
 	return (PyObject*)Py_BuildValue("i",res);		
 }
@@ -447,7 +460,7 @@ PyObject *Extest_decrypt(PyObject *self,PyObject*args)
 	int res ;
 	char *password =NULL;
 	res = PyArg_ParseTuple(args,"is",&me,&password);
-	if(!res)return NULL;
+	if(!res) (PyObject*)Py_BuildValue("i",-1);	
 	res = DataStream_decrypt(me,password);
 	return (PyObject*)Py_BuildValue("i",res);	
 }
@@ -457,7 +470,7 @@ PyObject *Extest_new(PyObject *self,PyObject*args)
 	void *ds;
 	PyObject *out = NULL;
 	int res = PyArg_ParseTuple(args,"i",&sz);
-	if(!res)return NULL;
+	if(!res) (PyObject*)Py_BuildValue("i",0);	
 	ds = DataStream_new(sz);
 	if(!ds)return NULL;
 	return (PyObject*)Py_BuildValue("i",ds);
@@ -467,7 +480,7 @@ PyObject *Extest_delete(PyObject *self,PyObject*args)
 	DataStream*me;
 	int res ;
 	res = PyArg_ParseTuple(args,"i",&me);
-	if(!res)return NULL;
+	if(!res)return (PyObject*)Py_BuildValue("i",0);	
 	DataStream_delete(me);	
 	return (PyObject*)Py_BuildValue("i",1);
 }
