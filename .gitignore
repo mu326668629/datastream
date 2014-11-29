@@ -9,7 +9,7 @@
 *.txt
 *.pyd
 *.exe
-*.lib
+
 *.obj
 *.exp
 *.ilk
